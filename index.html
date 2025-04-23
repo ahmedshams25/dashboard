@@ -647,20 +647,32 @@
             }
         }
     </style>
+.error-message {
+    color: #f72585;
+    background-color: #fee;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    display: none;
+}
 </head>
 <body>
     <!-- شاشة تسجيل الدخول -->
-    <div class="login-container" id="login-container">
-        <div class="login-box">
-            <div class="login-logo">
-                <i class="fas fa-chart-line"></i>
-            </div>
-            <h2>تسجيل الدخول</h2>
-            <input type="email" id="login-email" placeholder="البريد الإلكتروني">
-            <input type="password" id="login-password" placeholder="كلمة المرور">
-            <button id="login-btn">تسجيل الدخول</button>
+   <div class="login-container" id="login-container">
+    <div class="login-box">
+        <div class="login-logo">
+            <i class="fas fa-chart-line"></i>
+        </div>
+        <h2>تسجيل الدخول</h2>
+        <div class="error-message" id="login-error"></div>
+        <input type="email" id="login-email" placeholder="البريد الإلكتروني">
+        <input type="password" id="login-password" placeholder="كلمة المرور">
+        <button id="login-btn">تسجيل الدخول</button>
+        <div style="margin-top: 15px;">
+            <p>لا تملك حساباً؟ <a href="#" id="register-link">سجل الآن</a></p>
         </div>
     </div>
+</div>
 
     <!-- لوحة التحكم (ستظهر بعد تسجيل الدخول) -->
     <div class="dashboard-container" id="dashboard-container" style="display: none;">
@@ -862,20 +874,20 @@
     <script>
         // تهيئة Firebase
         const firebaseConfig = {
-            apiKey: "AIzaSyA6I_JWRJ1Xaw3UENFFR3pDfFCFFiy0Btc",
-            authDomain: "dashboard-a5cac.firebaseapp.com",
-            projectId: "dashboard-a5cac",
-            storageBucket: "dashboard-a5cac.appspot.com",
-            messagingSenderId: "392696467337",
-            appId: "1:392696467337:web:d23d4526db6463dd68db58",
-            measurementId: "G-M3Y808XBW3"
-        };
+    apiKey: "AIzaSyA6I_JWRJ1Xaw3UENFFR3pDfFCFFiy0Btc",
+    authDomain: "dashboard-a5cac.firebaseapp.com",
+    projectId: "dashboard-a5cac",
+    storageBucket: "dashboard-a5cac.appspot.com",
+    messagingSenderId: "392696467337",
+    appId: "1:392696467337:web:d23d4526db6463dd68db58",
+    measurementId: "G-M3Y808XBW3"
+};
 
-        // Initialize Firebase
-        const app = firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const database = firebase.database();
-        const storage = firebase.storage();
+// Initialize Firebase
+const app = firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const database = firebase.database();
+const storage = firebase.storage();
 
         document.addEventListener('DOMContentLoaded', function() {
             // عناصر DOM
