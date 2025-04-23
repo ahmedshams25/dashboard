@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>لوحة التحكم الذكية</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --primary-color: #4361ee;
@@ -51,11 +52,11 @@
             box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
             z-index: 1000;
             overflow-y: auto;
-            transform: translateX(0);
+            transform: translateX(calc(-1 * var(--sidebar-width)));
         }
 
-        .sidebar.collapsed {
-            transform: translateX(calc(-1 * var(--sidebar-width)));
+        .sidebar.open {
+            transform: translateX(0);
         }
 
         .sidebar-header {
@@ -98,13 +99,6 @@
         .menu-item i {
             margin-left: 10px;
             font-size: 1.1rem;
-        }
-
-        .menu-item img.menu-icon {
-            margin-left: 10px;
-            width: 20px;
-            height: 20px;
-            object-fit: contain;
         }
 
         .menu-item-actions {
@@ -150,11 +144,6 @@
             flex: 1;
             transition: all 0.3s ease;
             width: 100%;
-            padding-right: var(--sidebar-width);
-        }
-
-        .main-content.expanded {
-            padding-right: 0;
         }
 
         .header {
@@ -281,19 +270,48 @@
             opacity: 0.8;
         }
 
-        .app-frame {
+        .app-frame-container {
             width: 100%;
             height: calc(100vh - var(--header-height) - 60px);
-            border: none;
             border-radius: 8px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             background-color: white;
             display: none;
+            position: relative;
+            overflow: hidden;
         }
 
-        .app-frame.active {
+        .app-frame-container.active {
             display: block;
             animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .app-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .webview-controls {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 100;
+            display: flex;
+            gap: 5px;
+        }
+
+        .webview-controls button {
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
         }
 
         /* الصفحة الرئيسية */
@@ -419,14 +437,9 @@
             color: var(--primary-color);
         }
 
-        .chart-placeholder {
+        .chart-container {
             height: 250px;
-            background-color: #f9f9f9;
-            border-radius: 5px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #777;
+            position: relative;
         }
 
         /* نموذج إضافة/تعديل التطبيق */
@@ -493,36 +506,6 @@
             border: 1px solid #ddd;
             border-radius: 5px;
             font-size: 1rem;
-        }
-
-        .icon-upload {
-            display: flex;
-            align-items: center;
-            margin-top: 10px;
-        }
-
-        .icon-upload img {
-            width: 40px;
-            height: 40px;
-            margin-left: 15px;
-            border-radius: 5px;
-            object-fit: contain;
-        }
-
-        .icon-upload label {
-            padding: 8px 15px;
-            background-color: #f0f0f0;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .icon-upload label:hover {
-            background-color: #e0e0e0;
-        }
-
-        .icon-upload input[type="file"] {
-            display: none;
         }
 
         .form-actions {
@@ -622,18 +605,6 @@
 
         /* تصميم متجاوب */
         @media (max-width: 992px) {
-            .sidebar {
-                transform: translateX(calc(-1 * var(--sidebar-width)));
-            }
-            
-            .sidebar.open {
-                transform: translateX(0);
-            }
-            
-            .main-content {
-                padding-right: 0;
-            }
-            
             .mobile-menu-btn {
                 display: block;
             }
@@ -656,10 +627,6 @@
         }
 
         @media (max-width: 576px) {
-            .sidebar {
-                width: 260px;
-            }
-            
             .stats-container {
                 grid-template-columns: 1fr;
             }
@@ -785,15 +752,15 @@
                     <div class="charts-container">
                         <div class="chart-card">
                             <h3><i class="fas fa-chart-bar"></i> نشاط التطبيقات</h3>
-                            <div class="chart-placeholder">
-                                <p>رسم بياني يظهر نشاط استخدام التطبيقات</p>
+                            <div class="chart-container">
+                                <canvas id="apps-activity-chart"></canvas>
                             </div>
                         </div>
                         
                         <div class="chart-card">
-                            <h3><i class="fas fa-chart-pie"></i> توزيع التطبيقات</h3>
-                            <div class="chart-placeholder">
-                                <p>رسم بياني دائري يظهر توزيع أنواع التطبيقات</p>
+                            <h3><i class="fas fa-chart-pie"></i> وقت استخدام التطبيقات</h3>
+                            <div class="chart-container">
+                                <canvas id="apps-usage-chart"></canvas>
                             </div>
                         </div>
                     </div>
@@ -810,7 +777,14 @@
                 </div>
                 
                 <!-- إطار عرض التطبيق -->
-                <iframe id="app-viewer" class="app-frame"></iframe>
+                <div class="app-frame-container" id="app-frame-container">
+                    <div class="webview-controls">
+                        <button id="back-btn" title="رجوع"><i class="fas fa-arrow-left"></i></button>
+                        <button id="forward-btn" title="تقدم"><i class="fas fa-arrow-right"></i></button>
+                        <button id="refresh-btn" title="تحديث"><i class="fas fa-sync-alt"></i></button>
+                    </div>
+                    <iframe id="app-viewer" class="app-frame"></iframe>
+                </div>
             </div>
         </div>
     </div>
@@ -837,35 +811,38 @@
                 </div>
                 
                 <div class="form-group">
-                    <label>أيقونة التطبيق</label>
-                    <select id="app-icon-type">
-                        <option value="builtin">اختر أيقونة</option>
-                        <option value="custom">رفع أيقونة مخصصة</option>
+                    <label for="app-icon">أيقونة التطبيق</label>
+                    <select id="app-icon" required>
+                        <option value="">اختر أيقونة</option>
+                        <option value="fas fa-home">منزل</option>
+                        <option value="fas fa-chart-line">رسوم بيانية</option>
+                        <option value="fas fa-chart-pie">إحصاءات</option>
+                        <option value="fas fa-cog">إعدادات</option>
+                        <option value="fas fa-database">قاعدة بيانات</option>
+                        <option value="fas fa-envelope">رسائل</option>
+                        <option value="fas fa-calendar">تقويم</option>
+                        <option value="fas fa-tasks">مهام</option>
+                        <option value="fas fa-shopping-cart">متجر</option>
+                        <option value="fas fa-users">عملاء</option>
+                        <option value="fas fa-file-alt">تقارير</option>
+                        <option value="fas fa-image">صور</option>
+                        <option value="fas fa-video">فيديو</option>
+                        <option value="fas fa-music">موسيقى</option>
+                        <option value="fas fa-map-marker-alt">خرائط</option>
+                        <option value="fas fa-credit-card">مدفوعات</option>
+                        <option value="fas fa-cloud">سحابة</option>
+                        <option value="fas fa-lock">أمان</option>
+                        <option value="fas fa-bell">إشعارات</option>
+                        <option value="fas fa-comments">محادثات</option>
+                        <option value="fas fa-book">كتب</option>
+                        <option value="fas fa-graduation-cap">تعليم</option>
+                        <option value="fas fa-heart">صحة</option>
+                        <option value="fas fa-utensils">طعام</option>
+                        <option value="fas fa-plane">سفر</option>
+                        <option value="fas fa-car">سيارات</option>
+                        <option value="fas fa-gamepad">ألعاب</option>
+                        <option value="fas fa-newspaper">أخبار</option>
                     </select>
-                    
-                    <div id="builtin-icons" class="icon-options">
-                        <select id="app-icon" required>
-                            <option value="">اختر أيقونة</option>
-                            <option value="fas fa-home">منزل</option>
-                            <option value="fas fa-chart-line">رسوم بيانية</option>
-                            <option value="fas fa-cog">إعدادات</option>
-                            <option value="fas fa-database">قاعدة بيانات</option>
-                            <option value="fas fa-envelope">رسائل</option>
-                            <option value="fas fa-calendar">تقويم</option>
-                            <option value="fas fa-tasks">مهام</option>
-                            <option value="fas fa-shopping-cart">متجر</option>
-                            <option value="fas fa-users">عملاء</option>
-                            <option value="fas fa-file-alt">تقارير</option>
-                        </select>
-                    </div>
-                    
-                    <div id="custom-icon-upload" class="icon-options" style="display: none;">
-                        <div class="icon-upload">
-                            <label for="custom-icon">اختر صورة</label>
-                            <input type="file" id="custom-icon" accept="image/*">
-                            <img id="icon-preview" src="" alt="معاينة الأيقونة" style="display: none;">
-                        </div>
-                    </div>
                 </div>
                 
                 <div class="form-actions">
@@ -917,6 +894,7 @@
             const mobileMenuBtn = document.getElementById('mobile-menu-btn');
             const appsMenu = document.getElementById('apps-menu');
             const appViewer = document.getElementById('app-viewer');
+            const appFrameContainer = document.getElementById('app-frame-container');
             const welcomeContent = document.getElementById('welcome-content');
             const currentAppTitle = document.getElementById('current-app-title');
             const addAppBtn = document.getElementById('add-app-btn');
@@ -932,20 +910,24 @@
             const editCurrentAppBtn = document.getElementById('edit-current-app-btn');
             const deleteCurrentAppBtn = document.getElementById('delete-current-app-btn');
             
+            const backBtn = document.getElementById('back-btn');
+            const forwardBtn = document.getElementById('forward-btn');
+            const refreshBtn = document.getElementById('refresh-btn');
+            
             const appModal = document.getElementById('app-modal');
             const modalTitle = document.getElementById('modal-title');
             const appForm = document.getElementById('app-form');
             const appIdInput = document.getElementById('app-id');
             const appNameInput = document.getElementById('app-name');
             const appUrlInput = document.getElementById('app-url');
-            const appIconType = document.getElementById('app-icon-type');
-            const builtinIcons = document.getElementById('builtin-icons');
-            const customIconUpload = document.getElementById('custom-icon-upload');
             const appIconSelect = document.getElementById('app-icon');
-            const customIconInput = document.getElementById('custom-icon');
-            const iconPreview = document.getElementById('icon-preview');
             const cancelBtn = document.getElementById('cancel-btn');
             const closeModalBtn = document.querySelector('.close-modal');
+            
+            // مخططات
+            const appsActivityCtx = document.getElementById('apps-activity-chart').getContext('2d');
+            const appsUsageCtx = document.getElementById('apps-usage-chart').getContext('2d');
+            let appsActivityChart, appsUsageChart;
             
             // حالة التطبيق
             let currentUser = null;
@@ -953,7 +935,8 @@
             let currentAppId = 'welcome';
             let isEditing = false;
             let editAppId = null;
-            let customIconFile = null;
+            let appUsageData = {};
+            let currentAppStartTime = null;
 
             // تهيئة التطبيق
             function init() {
@@ -970,10 +953,11 @@
                 appForm.addEventListener('submit', saveApp);
                 cancelBtn.addEventListener('click', closeModal);
                 closeModalBtn.addEventListener('click', closeModal);
-                appIconType.addEventListener('change', toggleIconType);
-                customIconInput.addEventListener('change', handleIconUpload);
                 editCurrentAppBtn.addEventListener('click', editCurrentApp);
                 deleteCurrentAppBtn.addEventListener('click', deleteCurrentApp);
+                backBtn.addEventListener('click', goBack);
+                forwardBtn.addEventListener('click', goForward);
+                refreshBtn.addEventListener('click', refreshApp);
                 
                 // إغلاق النموذج عند النقر خارج المحتوى
                 appModal.addEventListener('click', function(e) {
@@ -988,6 +972,7 @@
                         currentUser = user;
                         showDashboard();
                         loadUserApps();
+                        loadUsageData();
                     } else {
                         showLogin();
                     }
@@ -1009,6 +994,7 @@
                         currentUser = userCredential.user;
                         showDashboard();
                         loadUserApps();
+                        loadUsageData();
                     })
                     .catch((error) => {
                         alert('خطأ في تسجيل الدخول: ' + error.message);
@@ -1017,6 +1003,11 @@
 
             // تسجيل الخروج
             function logoutUser() {
+                // حفظ وقت الاستخدام قبل تسجيل الخروج
+                if (currentAppId !== 'welcome' && currentAppStartTime) {
+                    recordAppUsage(currentAppId);
+                }
+                
                 auth.signOut()
                     .then(() => {
                         currentUser = null;
@@ -1086,6 +1077,156 @@
                 });
             }
 
+            // تحميل بيانات استخدام التطبيقات
+            function loadUsageData() {
+                const userId = currentUser.uid;
+                const usageRef = database.ref(`users/${userId}/usage`);
+                
+                usageRef.on('value', (snapshot) => {
+                    const data = snapshot.val();
+                    appUsageData = data || {};
+                    updateCharts();
+                });
+            }
+
+            // تسجيل استخدام التطبيق
+            function recordAppUsage(appId) {
+                if (!appId || appId === 'welcome') return;
+                
+                const endTime = new Date();
+                const usageTime = Math.floor((endTime - currentAppStartTime) / 1000); // بالثواني
+                currentAppStartTime = null;
+                
+                const userId = currentUser.uid;
+                const usageRef = database.ref(`users/${userId}/usage/${appId}`);
+                
+                usageRef.transaction(currentData => {
+                    const now = new Date().toISOString().split('T')[0];
+                    
+                    if (currentData) {
+                        // تحديث البيانات الموجودة
+                        currentData.totalUsage = (currentData.totalUsage || 0) + usageTime;
+                        currentData.lastUsed = new Date().toISOString();
+                        currentData.usageCount = (currentData.usageCount || 0) + 1;
+                        
+                        // تحديث الاستخدام اليومي
+                        currentData.dailyUsage = currentData.dailyUsage || {};
+                        currentData.dailyUsage[now] = (currentData.dailyUsage[now] || 0) + usageTime;
+                    } else {
+                        // إنشاء بيانات جديدة
+                        currentData = {
+                            totalUsage: usageTime,
+                            lastUsed: new Date().toISOString(),
+                            usageCount: 1,
+                            dailyUsage: {
+                                [now]: usageTime
+                            }
+                        };
+                    }
+                    
+                    return currentData;
+                });
+            }
+
+            // تحديث المخططات البيانية
+            function updateCharts() {
+                // تحضير البيانات للمخططات
+                const appLabels = [];
+                const usageCounts = [];
+                const usageTimes = [];
+                
+                apps.forEach(app => {
+                    if (app.id !== 'welcome' && appUsageData[app.id]) {
+                        appLabels.push(app.name);
+                        usageCounts.push(appUsageData[app.id].usageCount || 0);
+                        usageTimes.push(Math.floor((appUsageData[app.id].totalUsage || 0) / 60); // تحويل إلى دقائق
+                    }
+                });
+                
+                // تدمير المخططات القديمة إذا كانت موجودة
+                if (appsActivityChart) appsActivityChart.destroy();
+                if (appsUsageChart) appsUsageChart.destroy();
+                
+                // مخطط نشاط التطبيقات (عدد مرات الاستخدام)
+                appsActivityChart = new Chart(appsActivityCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: appLabels,
+                        datasets: [{
+                            label: 'عدد مرات الاستخدام',
+                            data: usageCounts,
+                            backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'عدد المرات'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'التطبيقات'
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                // مخطط وقت استخدام التطبيقات
+                appsUsageChart = new Chart(appsUsageCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: appLabels,
+                        datasets: [{
+                            label: 'وقت الاستخدام (دقائق)',
+                            data: usageTimes,
+                            backgroundColor: [
+                                'rgba(255, 99, 132, 0.5)',
+                                'rgba(54, 162, 235, 0.5)',
+                                'rgba(255, 206, 86, 0.5)',
+                                'rgba(75, 192, 192, 0.5)',
+                                'rgba(153, 102, 255, 0.5)',
+                                'rgba(255, 159, 64, 0.5)'
+                            ],
+                            borderColor: [
+                                'rgba(255, 99, 132, 1)',
+                                'rgba(54, 162, 235, 1)',
+                                'rgba(255, 206, 86, 1)',
+                                'rgba(75, 192, 192, 1)',
+                                'rgba(153, 102, 255, 1)',
+                                'rgba(255, 159, 64, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return `${context.label}: ${context.raw} دقائق`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
             // عرض قائمة التطبيقات
             function renderAppsMenu() {
                 appsMenu.innerHTML = '';
@@ -1094,13 +1235,6 @@
                     const menuItem = document.createElement('div');
                     menuItem.className = `menu-item ${app.id === currentAppId ? 'active' : ''}`;
                     menuItem.setAttribute('data-app-id', app.id);
-                    
-                    let iconHTML = '';
-                    if (app.icon.startsWith('http')) {
-                        iconHTML = `<img class="menu-icon" src="${app.icon}" alt="${app.name}">`;
-                    } else {
-                        iconHTML = `<i class="${app.icon}"></i>`;
-                    }
                     
                     menuItem.innerHTML = `
                         <div class="menu-item-actions">
@@ -1113,17 +1247,20 @@
                             </button>
                             ` : ''}
                         </div>
-                        ${iconHTML}
+                        <i class="${app.icon}"></i>
                         <span>${app.name}</span>
                     `;
                     
                     menuItem.addEventListener('click', function(e) {
                         if (!e.target.closest('.menu-item-actions')) {
+                            // تسجيل وقت استخدام التطبيق الحالي قبل التغيير
+                            if (currentAppId !== 'welcome' && currentAppStartTime) {
+                                recordAppUsage(currentAppId);
+                            }
+                            
                             currentAppId = app.id;
                             updateView();
-                            if (window.innerWidth <= 992) {
-                                toggleMobileMenu();
-                            }
+                            toggleMobileMenu();
                         }
                     });
                     
@@ -1156,17 +1293,54 @@
                 
                 if (currentApp.id === 'welcome') {
                     welcomeContent.style.display = 'block';
-                    appViewer.classList.remove('active');
+                    appFrameContainer.classList.remove('active');
                     appControls.classList.remove('active');
+                    
+                    // تحديث المخططات عند عرض الصفحة الرئيسية
+                    updateCharts();
                 } else {
                     welcomeContent.style.display = 'none';
-                    appViewer.src = currentApp.url;
-                    appViewer.classList.add('active');
+                    appFrameContainer.classList.add('active');
                     appControls.classList.add('active');
                     currentAppControlTitle.textContent = currentApp.name;
+                    
+                    // تحميل التطبيق في iframe
+                    loadAppFrame(currentApp.url);
+                    
+                    // بدء حساب وقت الاستخدام
+                    currentAppStartTime = new Date();
                 }
                 
                 renderAppsMenu();
+            }
+
+            // تحميل التطبيق في iframe
+            function loadAppFrame(url) {
+                // حل مشكلة CORS لمواقع خارجية
+                const proxyUrl = `https://cors-anywhere.herokuapp.com/${url}`;
+                
+                // يمكنك استخدام Proxy خاص بك بدلاً من cors-anywhere
+                // أو استخدام iframe مباشرة مع السماح ببعض المواقع
+                appViewer.src = url;
+            }
+
+            // التحكم في iframe
+            function goBack() {
+                if (appViewer.contentWindow) {
+                    appViewer.contentWindow.history.back();
+                }
+            }
+
+            function goForward() {
+                if (appViewer.contentWindow) {
+                    appViewer.contentWindow.history.forward();
+                }
+            }
+
+            function refreshApp() {
+                if (appViewer.contentWindow) {
+                    appViewer.contentWindow.location.reload();
+                }
             }
 
             // تحديث عدد التطبيقات
@@ -1193,7 +1367,6 @@
             // تبديل القائمة الجانبية على الهاتف
             function toggleMobileMenu() {
                 sidebar.classList.toggle('open');
-                mainContent.classList.toggle('expanded');
             }
 
             // تعديل التطبيق الحالي
@@ -1213,11 +1386,6 @@
                 modalTitle.textContent = 'إضافة تطبيق جديد';
                 appForm.reset();
                 appIdInput.value = '';
-                customIconFile = null;
-                iconPreview.style.display = 'none';
-                appIconType.value = 'builtin';
-                builtinIcons.style.display = 'block';
-                customIconUpload.style.display = 'none';
                 appModal.style.display = 'flex';
             }
 
@@ -1231,48 +1399,8 @@
                 modalTitle.textContent = 'تعديل التطبيق';
                 appNameInput.value = app.name;
                 appUrlInput.value = app.url;
-                
-                // تحديد نوع الأيقونة
-                if (app.icon.startsWith('http')) {
-                    appIconType.value = 'custom';
-                    builtinIcons.style.display = 'none';
-                    customIconUpload.style.display = 'block';
-                    iconPreview.src = app.icon;
-                    iconPreview.style.display = 'block';
-                } else {
-                    appIconType.value = 'builtin';
-                    builtinIcons.style.display = 'block';
-                    customIconUpload.style.display = 'none';
-                    appIconSelect.value = app.icon;
-                }
-                
+                appIconSelect.value = app.icon;
                 appModal.style.display = 'flex';
-            }
-
-            // تبديل نوع الأيقونة
-            function toggleIconType() {
-                if (appIconType.value === 'builtin') {
-                    builtinIcons.style.display = 'block';
-                    customIconUpload.style.display = 'none';
-                } else {
-                    builtinIcons.style.display = 'none';
-                    customIconUpload.style.display = 'block';
-                }
-            }
-
-            // معالجة رفع الأيقونة
-            function handleIconUpload(e) {
-                const file = e.target.files[0];
-                if (!file) return;
-                
-                customIconFile = file;
-                
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    iconPreview.src = event.target.result;
-                    iconPreview.style.display = 'block';
-                };
-                reader.readAsDataURL(file);
             }
 
             // حفظ التطبيق
@@ -1281,71 +1409,56 @@
                 
                 const appName = appNameInput.value;
                 const appUrl = appUrlInput.value;
+                const appIcon = appIconSelect.value;
                 
-                if (!appName || !appUrl) {
-                    alert('الرجاء إدخال اسم التطبيق والرابط');
+                if (!appName || !appUrl || !appIcon) {
+                    alert('الرجاء إدخال جميع البيانات المطلوبة');
                     return;
                 }
                 
-                let iconPromise;
+                const appData = {
+                    name: appName,
+                    url: appUrl,
+                    icon: appIcon,
+                    isDefault: false
+                };
                 
-                if (appIconType.value === 'custom' && customIconFile) {
-                    // رفع الأيقونة المخصصة إلى Firebase Storage
-                    const userId = currentUser.uid;
-                    const filePath = `icons/${userId}/${Date.now()}_${customIconFile.name}`;
-                    const fileRef = storage.ref(filePath);
-                    
-                    iconPromise = fileRef.put(customIconFile)
-                        .then(snapshot => snapshot.ref.getDownloadURL());
-                } else if (appIconType.value === 'builtin' && appIconSelect.value) {
-                    // استخدام الأيقونة المدمجة
-                    iconPromise = Promise.resolve(appIconSelect.value);
+                const userId = currentUser.uid;
+                const appsRef = database.ref(`users/${userId}/apps`);
+                
+                if (isEditing) {
+                    // تحديث التطبيق الموجود
+                    appsRef.child(editAppId).update(appData)
+                        .then(() => {
+                            closeModal();
+                        })
+                        .catch(error => {
+                            alert('خطأ في تحديث التطبيق: ' + error.message);
+                        });
                 } else {
-                    alert('الرجاء اختيار أيقونة للتطبيق');
-                    return;
+                    // إضافة تطبيق جديد
+                    const newAppRef = appsRef.push();
+                    newAppRef.set(appData)
+                        .then(() => {
+                            closeModal();
+                        })
+                        .catch(error => {
+                            alert('خطأ في إضافة التطبيق: ' + error.message);
+                        });
                 }
-                
-                iconPromise.then(icon => {
-                    const appData = {
-                        name: appName,
-                        url: appUrl,
-                        icon: icon,
-                        isDefault: false
-                    };
-                    
-                    const userId = currentUser.uid;
-                    const appsRef = database.ref(`users/${userId}/apps`);
-                    
-                    if (isEditing) {
-                        // تحديث التطبيق الموجود
-                        appsRef.child(editAppId).update(appData)
-                            .then(() => {
-                                closeModal();
-                            })
-                            .catch(error => {
-                                alert('خطأ في تحديث التطبيق: ' + error.message);
-                            });
-                    } else {
-                        // إضافة تطبيق جديد
-                        const newAppRef = appsRef.push();
-                        newAppRef.set(appData)
-                            .then(() => {
-                                closeModal();
-                            })
-                            .catch(error => {
-                                alert('خطأ في إضافة التطبيق: ' + error.message);
-                            });
-                    }
-                }).catch(error => {
-                    alert('خطأ في رفع الأيقونة: ' + error.message);
-                });
             }
 
             // حذف التطبيق
             function deleteApp(appId) {
                 if (confirm('هل أنت متأكد من حذف هذا التطبيق؟')) {
                     const userId = currentUser.uid;
-                    database.ref(`users/${userId}/apps/${appId}`).remove()
+                    
+                    // حذف بيانات الاستخدام أولاً
+                    database.ref(`users/${userId}/usage/${appId}`).remove()
+                        .then(() => {
+                            // ثم حذف التطبيق نفسه
+                            return database.ref(`users/${userId}/apps/${appId}`).remove();
+                        })
                         .then(() => {
                             if (currentAppId === appId) {
                                 currentAppId = 'welcome';
