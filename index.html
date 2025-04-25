@@ -1005,8 +1005,8 @@
 
                 // إغلاق القائمة الجانبية عند النقر خارجها
                 document.addEventListener('click', function(e) {
-                    if (!sidebar.contains(e.target) {
-                        if (window.innerWidth <= 992 && sidebar.classList.contains('open') && e.target !== mobileMenuBtn) {
+                    if (!sidebar.contains(e.target) && e.target !== mobileMenuBtn) {
+                        if (window.innerWidth <= 992 && sidebar.classList.contains('open')) {
                             toggleMobileMenu();
                         }
                     }
