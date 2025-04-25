@@ -267,6 +267,11 @@
             color: white;
         }
 
+        .app-controls-actions .back-to-home-btn {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
         .app-controls-actions button:hover {
             opacity: 0.8;
         }
@@ -291,28 +296,6 @@
             width: 100%;
             height: 100%;
             border: none;
-        }
-
-        .webview-controls {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            z-index: 100;
-            display: flex;
-            gap: 5px;
-        }
-
-        .webview-controls button {
-            background-color: rgba(0, 0, 0, 0.7);
-            color: white;
-            border: none;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
         }
 
         /* الصفحة الرئيسية */
@@ -347,6 +330,7 @@
             align-items: center;
             text-align: center;
             transition: all 0.3s;
+            cursor: pointer;
         }
 
         .stat-card:hover {
@@ -370,6 +354,70 @@
         .stat-card .stat-label {
             color: #666;
             font-size: 0.9rem;
+        }
+
+        .word-of-the-day {
+            background-color: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .word-header {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .word-title {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .refresh-word {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .word-content {
+            text-align: center;
+        }
+
+        .english-word {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: var(--dark-color);
+        }
+
+        .arabic-meaning {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            color: #555;
+        }
+
+        .word-example {
+            font-style: italic;
+            color: #666;
+        }
+
+        .manage-words-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-size: 0.8rem;
         }
 
         .quick-actions {
@@ -638,11 +686,6 @@
             .stats-container {
                 grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             }
-
-            .webview-controls {
-                left: 50%;
-                transform: translateX(-50%);
-            }
         }
 
         @media (max-width: 576px) {
@@ -731,6 +774,9 @@
                 <div class="app-controls" id="app-controls">
                     <div class="app-title" id="current-app-control-title"></div>
                     <div class="app-controls-actions">
+                        <button class="back-to-home-btn" id="back-to-home-btn">
+                            <i class="fas fa-home"></i> الرئيسية
+                        </button>
                         <button class="edit-app-btn" id="edit-current-app-btn">
                             <i class="fas fa-edit"></i> تعديل
                         </button>
@@ -747,8 +793,26 @@
                         <p id="welcome-message-text">يمكنك إدارة التطبيقات وعرضها في المنطقة الرئيسية</p>
                     </div>
                     
+                    <!-- كلمة اليوم -->
+                    <div class="word-of-the-day" id="word-of-the-day">
+                        <div class="word-header">
+                            <span class="word-title">كلمة اليوم</span>
+                            <button class="refresh-word" id="refresh-word-btn">
+                                <i class="fas fa-sync-alt"></i> تغيير الكلمة
+                            </button>
+                        </div>
+                        <div class="word-content">
+                            <div class="english-word" id="english-word">Loading...</div>
+                            <div class="arabic-meaning" id="arabic-meaning"></div>
+                            <div class="word-example" id="word-example"></div>
+                        </div>
+                        <button class="manage-words-btn" id="manage-words-btn">
+                            <i class="fas fa-cog"></i> إدارة الكلمات
+                        </button>
+                    </div>
+                    
                     <div class="stats-container">
-                        <div class="stat-card">
+                        <div class="stat-card" id="apps-count-card">
                             <i class="fas fa-boxes"></i>
                             <div class="stat-value" id="apps-count">0</div>
                             <div class="stat-label">عدد التطبيقات</div>
@@ -802,11 +866,6 @@
                 
                 <!-- إطار عرض التطبيق -->
                 <div class="app-frame-container" id="app-frame-container">
-                    <div class="webview-controls">
-                        <button id="back-btn" title="رجوع"><i class="fas fa-arrow-left"></i></button>
-                        <button id="forward-btn" title="تقدم"><i class="fas fa-arrow-right"></i></button>
-                        <button id="refresh-btn" title="تحديث"><i class="fas fa-sync-alt"></i></button>
-                    </div>
                     <iframe id="app-viewer" class="app-frame"></iframe>
                 </div>
             </div>
@@ -877,6 +936,32 @@
         </div>
     </div>
 
+    <!-- نموذج إدارة الكلمات -->
+    <div class="modal" id="words-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>إدارة كلمات اليوم</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            
+            <div class="form-group">
+                <label>استيراد كلمات من ملف JSON</label>
+                <input type="file" id="words-json-file" accept=".json">
+                <small>يجب أن يكون الملف بتنسيق JSON ويحتوي على مصفوفة من الكلمات</small>
+            </div>
+            
+            <div class="form-group">
+                <button id="clear-words-btn" class="submit-btn" style="background-color: var(--danger-color);">
+                    <i class="fas fa-trash"></i> حذف جميع الكلمات
+                </button>
+            </div>
+            
+            <div class="form-actions">
+                <button type="button" class="cancel-btn" id="close-words-modal-btn">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
@@ -929,15 +1014,13 @@
             const userStat = document.getElementById('user-stat');
             const currentTime = document.getElementById('current-time');
             const currentDate = document.getElementById('current-date');
+            const appsCountCard = document.getElementById('apps-count-card');
             
             const appControls = document.getElementById('app-controls');
             const currentAppControlTitle = document.getElementById('current-app-control-title');
+            const backToHomeBtn = document.getElementById('back-to-home-btn');
             const editCurrentAppBtn = document.getElementById('edit-current-app-btn');
             const deleteCurrentAppBtn = document.getElementById('delete-current-app-btn');
-            
-            const backBtn = document.getElementById('back-btn');
-            const forwardBtn = document.getElementById('forward-btn');
-            const refreshBtn = document.getElementById('refresh-btn');
             
             const appModal = document.getElementById('app-modal');
             const modalTitle = document.getElementById('modal-title');
@@ -948,6 +1031,20 @@
             const appIconSelect = document.getElementById('app-icon');
             const cancelBtn = document.getElementById('cancel-btn');
             const closeModalBtn = document.querySelector('.close-modal');
+            
+            // كلمة اليوم
+            const wordOfTheDayContainer = document.getElementById('word-of-the-day');
+            const englishWordElement = document.getElementById('english-word');
+            const arabicMeaningElement = document.getElementById('arabic-meaning');
+            const wordExampleElement = document.getElementById('word-example');
+            const refreshWordBtn = document.getElementById('refresh-word-btn');
+            const manageWordsBtn = document.getElementById('manage-words-btn');
+            
+            // إدارة الكلمات
+            const wordsModal = document.getElementById('words-modal');
+            const wordsJsonFileInput = document.getElementById('words-json-file');
+            const clearWordsBtn = document.getElementById('clear-words-btn');
+            const closeWordsModalBtn = document.getElementById('close-words-modal-btn');
             
             // مخططات
             const appsActivityCtx = document.getElementById('apps-activity-chart').getContext('2d');
@@ -962,6 +1059,8 @@
             let editAppId = null;
             let appUsageData = {};
             let currentAppStartTime = null;
+            let wordsList = [];
+            let currentWordIndex = -1;
 
             // تهيئة التطبيق
             function init() {
@@ -978,16 +1077,26 @@
                 appForm.addEventListener('submit', saveApp);
                 cancelBtn.addEventListener('click', closeModal);
                 closeModalBtn.addEventListener('click', closeModal);
+                backToHomeBtn.addEventListener('click', goToHome);
                 editCurrentAppBtn.addEventListener('click', editCurrentApp);
                 deleteCurrentAppBtn.addEventListener('click', deleteCurrentApp);
-                backBtn.addEventListener('click', goBack);
-                forwardBtn.addEventListener('click', goForward);
-                refreshBtn.addEventListener('click', refreshApp);
+                appsCountCard.addEventListener('click', toggleMobileMenu);
+                refreshWordBtn.addEventListener('click', showRandomWord);
+                manageWordsBtn.addEventListener('click', openWordsModal);
+                wordsJsonFileInput.addEventListener('change', importWordsFromJson);
+                clearWordsBtn.addEventListener('click', clearWordsList);
+                closeWordsModalBtn.addEventListener('click', closeWordsModal);
                 
-                // إغلاق النموذج عند النقر خارج المحتوى
+                // إغلاق النماذج عند النقر خارج المحتوى
                 appModal.addEventListener('click', function(e) {
                     if (e.target === appModal) {
                         closeModal();
+                    }
+                });
+
+                wordsModal.addEventListener('click', function(e) {
+                    if (e.target === wordsModal) {
+                        closeWordsModal();
                     }
                 });
 
@@ -998,6 +1107,7 @@
                         showDashboard();
                         loadUserApps();
                         loadUsageData();
+                        loadWordsList();
                     } else {
                         showLogin();
                     }
@@ -1005,7 +1115,7 @@
 
                 // إغلاق القائمة الجانبية عند النقر خارجها
                 document.addEventListener('click', function(e) {
-                    if (!sidebar.contains(e.target) && e.target !== mobileMenuBtn) {
+                    if (!sidebar.contains(e.target) && e.target !== mobileMenuBtn && e.target !== appsCountCard) {
                         if (window.innerWidth <= 992 && sidebar.classList.contains('open')) {
                             toggleMobileMenu();
                         }
@@ -1033,6 +1143,7 @@
                         showDashboard();
                         loadUserApps();
                         loadUsageData();
+                        loadWordsList();
                         hideLoginError();
                     })
                     .catch((error) => {
@@ -1158,6 +1269,129 @@
                     appUsageData = data || {};
                     updateCharts();
                 });
+            }
+
+            // تحميل قائمة الكلمات
+            function loadWordsList() {
+                const userId = currentUser.uid;
+                const wordsRef = database.ref(`users/${userId}/words`);
+                
+                wordsRef.on('value', (snapshot) => {
+                    const data = snapshot.val();
+                    wordsList = data || [];
+                    
+                    if (wordsList.length > 0) {
+                        showRandomWord();
+                    } else {
+                        // تحميل بعض الكلمات الافتراضية إذا كانت القائمة فارغة
+                        loadDefaultWords();
+                    }
+                });
+            }
+
+            // تحميل كلمات افتراضية
+            function loadDefaultWords() {
+                const defaultWords = [
+                    {
+                        english: "Hello",
+                        arabic: "مرحبًا",
+                        example: "Hello, how are you? - مرحبًا، كيف حالك؟"
+                    },
+                    {
+                        english: "Thank you",
+                        arabic: "شكرًا لك",
+                        example: "Thank you for your help. - شكرًا لك على مساعدتك."
+                    },
+                    {
+                        english: "Goodbye",
+                        arabic: "مع السلامة",
+                        example: "Goodbye, see you tomorrow. - مع السلامة، أراك غدًا."
+                    }
+                ];
+                
+                wordsList = defaultWords;
+                showRandomWord();
+            }
+
+            // عرض كلمة عشوائية
+            function showRandomWord() {
+                if (wordsList.length === 0) {
+                    englishWordElement.textContent = "لا توجد كلمات متاحة";
+                    arabicMeaningElement.textContent = "";
+                    wordExampleElement.textContent = "";
+                    return;
+                }
+                
+                // اختيار كلمة عشوائية مختلفة عن الحالية
+                let newIndex;
+                do {
+                    newIndex = Math.floor(Math.random() * wordsList.length);
+                } while (newIndex === currentWordIndex && wordsList.length > 1);
+                
+                currentWordIndex = newIndex;
+                const word = wordsList[currentWordIndex];
+                
+                englishWordElement.textContent = word.english;
+                arabicMeaningElement.textContent = word.arabic;
+                wordExampleElement.textContent = word.example || "";
+            }
+
+            // استيراد كلمات من ملف JSON
+            function importWordsFromJson(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const importedWords = JSON.parse(e.target.result);
+                        if (Array.isArray(importedWords)) {
+                            const userId = currentUser.uid;
+                            const wordsRef = database.ref(`users/${userId}/words`);
+                            
+                            wordsRef.set(importedWords)
+                                .then(() => {
+                                    alert('تم استيراد الكلمات بنجاح!');
+                                    wordsJsonFileInput.value = '';
+                                })
+                                .catch(error => {
+                                    alert('حدث خطأ أثناء استيراد الكلمات: ' + error.message);
+                                });
+                        } else {
+                            alert('يجب أن يحتوي الملف على مصفوفة من الكلمات');
+                        }
+                    } catch (error) {
+                        alert('خطأ في قراءة ملف JSON: ' + error.message);
+                    }
+                };
+                reader.readAsText(file);
+            }
+
+            // حذف جميع الكلمات
+            function clearWordsList() {
+                if (confirm('هل أنت متأكد من حذف جميع الكلمات؟')) {
+                    const userId = currentUser.uid;
+                    const wordsRef = database.ref(`users/${userId}/words`);
+                    
+                    wordsRef.remove()
+                        .then(() => {
+                            alert('تم حذف جميع الكلمات بنجاح');
+                            loadDefaultWords();
+                        })
+                        .catch(error => {
+                            alert('حدث خطأ أثناء حذف الكلمات: ' + error.message);
+                        });
+                }
+            }
+
+            // فتح نموذج إدارة الكلمات
+            function openWordsModal() {
+                wordsModal.style.display = 'flex';
+            }
+
+            // إغلاق نموذج إدارة الكلمات
+            function closeWordsModal() {
+                wordsModal.style.display = 'none';
             }
 
             // تسجيل استخدام التطبيق
@@ -1385,33 +1619,20 @@
                 renderAppsMenu();
             }
 
+            // العودة إلى الصفحة الرئيسية
+            function goToHome() {
+                // تسجيل وقت استخدام التطبيق الحالي قبل التغيير
+                if (currentAppId !== 'welcome' && currentAppStartTime) {
+                    recordAppUsage(currentAppId);
+                }
+                
+                currentAppId = 'welcome';
+                updateView();
+            }
+
             // تحميل التطبيق في iframe
             function loadAppFrame(url) {
-                // حل مشكلة CORS لمواقع خارجية
-                const proxyUrl = `https://cors-anywhere.herokuapp.com/${url}`;
-                
-                // يمكنك استخدام Proxy خاص بك بدلاً من cors-anywhere
-                // أو استخدام iframe مباشرة مع السماح ببعض المواقع
                 appViewer.src = url;
-            }
-
-            // التحكم في iframe
-            function goBack() {
-                if (appViewer.contentWindow) {
-                    appViewer.contentWindow.history.back();
-                }
-            }
-
-            function goForward() {
-                if (appViewer.contentWindow) {
-                    appViewer.contentWindow.history.forward();
-                }
-            }
-
-            function refreshApp() {
-                if (appViewer.contentWindow) {
-                    appViewer.contentWindow.location.reload();
-                }
             }
 
             // تحديث عدد التطبيقات
