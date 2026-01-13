@@ -541,6 +541,169 @@
             color: #000000;
         }
 
+        /* قسم عرض التطبيقات المضافَة */
+        .apps-showcase {
+            margin-bottom: 30px;
+        }
+        
+        .apps-showcase-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .apps-showcase-header h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+        }
+        
+        .apps-showcase-header h3 i {
+            margin-left: 15px;
+            font-size: 1.5rem;
+        }
+        
+        .apps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+        }
+        
+        .app-card {
+            background-color: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: var(--card-shadow);
+            transition: var(--transition);
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        
+        .app-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .app-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 5px;
+            background: var(--primary-color);
+        }
+        
+        .app-card-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            color: #000000;
+            background: #f0f0f0;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+        
+        .app-card:hover .app-card-icon {
+            background: var(--primary-light);
+            transform: scale(1.1);
+        }
+        
+        .app-card-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--dark-color);
+        }
+        
+        .app-card-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .app-card-actions button {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            font-weight: 500;
+            font-size: 0.9rem;
+            flex: 1;
+            justify-content: center;
+        }
+        
+        .app-card-actions .launch-btn {
+            background-color: var(--primary-color);
+            color: white;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .app-card-actions .edit-btn {
+            background-color: var(--success-color);
+            color: white;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .app-card-actions .delete-btn {
+            background-color: var(--danger-color);
+            color: white;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .app-card-actions button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .app-card-actions button i {
+            margin-left: 8px;
+        }
+        
+        .no-apps-message {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 50px;
+            background-color: #f8f9fa;
+            border-radius: 12px;
+            border: 2px dashed var(--border-color);
+        }
+        
+        .no-apps-message i {
+            font-size: 3rem;
+            color: var(--text-light);
+            margin-bottom: 20px;
+        }
+        
+        .no-apps-message h4 {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: var(--dark-color);
+        }
+        
+        .no-apps-message p {
+            color: var(--text-light);
+            margin-bottom: 20px;
+        }
+
         /* بطاقات الإحصائيات المطورة */
         .stats-container {
             display: grid;
@@ -1156,6 +1319,10 @@
                 grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
             }
             
+            .apps-grid {
+                grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            }
+            
             .quick-actions button {
                 min-width: 160px;
             }
@@ -1186,6 +1353,10 @@
             .quick-actions .action-desc {
                 display: none;
             }
+            
+            .apps-grid {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            }
         }
 
         @media (max-width: 576px) {
@@ -1194,6 +1365,10 @@
             }
 
             .stats-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .apps-grid {
                 grid-template-columns: 1fr;
             }
             
@@ -1231,6 +1406,16 @@
             .refresh-word {
                 align-self: stretch;
                 justify-content: center;
+            }
+            
+            .apps-showcase-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .app-card-actions {
+                flex-direction: column;
             }
         }
     </style>
@@ -1378,8 +1563,16 @@
                             <div class="stat-value" id="apps-count">0</div>
                             <div class="stat-label">عدد التطبيقات</div>
                         </div>
-                        
-                        <!-- تم إزالة بطاقات التاريخ والوقت وحسابك -->
+                    </div>
+                    
+                    <!-- قسم عرض جميع التطبيقات المضافَة -->
+                    <div class="apps-showcase" id="apps-showcase">
+                        <div class="apps-showcase-header">
+                            <h3><i class="fas fa-th-large"></i> جميع التطبيقات</h3>
+                        </div>
+                        <div class="apps-grid" id="apps-grid">
+                            <!-- سيتم إضافة التطبيقات هنا ديناميكياً -->
+                        </div>
                     </div>
                     
                     <div class="quick-actions">
@@ -1390,8 +1583,6 @@
                                 <span class="action-desc">أضف تطبيقك المفضل إلى لوحة التحكم</span>
                             </div>
                         </button>
-                        
-                        <!-- تم إزالة زر تغيير السمة -->
                     </div>
                 </div>
                 
@@ -1516,7 +1707,7 @@
     <script>
         // تهيئة Firebase
         const firebaseConfig = {
-            apiKey: "AIzaSyA6I_JWRJ1Xaw3UENFFR3pDfFCFFiy0Btc", // تحذير: مفتاح API ظاهر هنا وهو خطر أمني
+            apiKey: "AIzaSyA6I_JWRJ1Xaw3UENFFR3pDfFCFFiy0Btc",
             authDomain: "dashboard-a5cac.firebaseapp.com",
             projectId: "dashboard-a5cac",
             storageBucket: "dashboard-a5cac.appspot.com",
@@ -1560,6 +1751,10 @@
             const appsCount = document.getElementById('apps-count');
             const appsCountCard = document.getElementById('apps-count-card');
             
+            // قسم عرض التطبيقات
+            const appsShowcase = document.getElementById('apps-showcase');
+            const appsGrid = document.getElementById('apps-grid');
+            
             const appControls = document.getElementById('app-controls');
             const currentAppControlTitle = document.getElementById('current-app-control-title');
             const backToHomeBtn = document.getElementById('back-to-home-btn');
@@ -1574,7 +1769,7 @@
             const appUrlInput = document.getElementById('app-url');
             const appIconSelect = document.getElementById('app-icon');
             const cancelBtn = document.getElementById('cancel-btn');
-            const closeModalBtn = document.querySelector('.close-modal'); // يفترض أنه واحد فقط أو الأول
+            const closeModalBtn = document.querySelector('.close-modal');
             
             // كلمة اليوم
             const wordOfTheDayContainer = document.getElementById('word-of-the-day');
@@ -1823,11 +2018,111 @@
                     });
                     
                     renderAppsMenu();
+                    renderAppsShowcase();
                     updateView();
                     updateAppsCount();
                 }, (error) => {
                     console.error('Error loading user apps:', error);
                 });
+            }
+
+            // عرض التطبيقات في الصفحة الرئيسية
+            function renderAppsShowcase() {
+                console.log('Rendering apps showcase');
+                appsGrid.innerHTML = '';
+                
+                // تصفية التطبيقات (إزالة تطبيق الرئيسية)
+                const userApps = apps.filter(app => !app.isDefault);
+                
+                if (userApps.length === 0) {
+                    appsGrid.innerHTML = `
+                        <div class="no-apps-message">
+                            <i class="fas fa-box-open"></i>
+                            <h4>لا توجد تطبيقات مضافَة</h4>
+                            <p>ابدأ بإضافة أول تطبيق لك للاستمتاع بميزات لوحة التحكم الذكية</p>
+                            <button class="add-app-btn" id="add-first-app-btn" style="margin-top: 10px; padding: 10px 20px;">
+                                <i class="fas fa-plus"></i> إضافة أول تطبيق
+                            </button>
+                        </div>
+                    `;
+                    
+                    document.getElementById('add-first-app-btn').addEventListener('click', openAddModal);
+                    return;
+                }
+                
+                userApps.forEach(app => {
+                    const appCard = document.createElement('div');
+                    appCard.className = 'app-card';
+                    appCard.setAttribute('data-app-id', app.id);
+                    
+                    appCard.innerHTML = `
+                        <div class="app-card-icon">
+                            <i class="${app.icon}"></i>
+                        </div>
+                        <div class="app-card-name">${app.name}</div>
+                        <div class="app-card-actions">
+                            <button class="launch-btn" data-app-id="${app.id}">
+                                <i class="fas fa-external-link-alt"></i> تشغيل
+                            </button>
+                            <button class="edit-btn" data-app-id="${app.id}">
+                                <i class="fas fa-edit"></i> تعديل
+                            </button>
+                            <button class="delete-btn" data-app-id="${app.id}">
+                                <i class="fas fa-trash"></i> حذف
+                            </button>
+                        </div>
+                    `;
+                    
+                    appsGrid.appendChild(appCard);
+                });
+                
+                // إضافة مستمعي الأحداث لأزرار التطبيقات
+                document.querySelectorAll('.launch-btn').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const appId = this.getAttribute('data-app-id');
+                        launchApp(appId);
+                    });
+                });
+                
+                document.querySelectorAll('.edit-btn').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const appId = this.getAttribute('data-app-id');
+                        openEditModal(appId);
+                    });
+                });
+                
+                document.querySelectorAll('.delete-btn').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const appId = this.getAttribute('data-app-id');
+                        deleteApp(appId);
+                    });
+                });
+                
+                // إضافة مستمع للنقر على البطاقة نفسها لتشغيل التطبيق
+                document.querySelectorAll('.app-card').forEach(card => {
+                    card.addEventListener('click', function(e) {
+                        if (!e.target.closest('.app-card-actions')) {
+                            const appId = this.getAttribute('data-app-id');
+                            launchApp(appId);
+                        }
+                    });
+                });
+            }
+            
+            // تشغيل تطبيق
+            function launchApp(appId) {
+                console.log('Launching app:', appId);
+                if (currentAppId !== 'welcome' && currentAppId !== appId) {
+                    recordAppUsage(currentAppId);
+                }
+                currentAppId = appId;
+                updateView();
+                if (window.innerWidth <= 992 && sidebar.classList.contains('open')) {
+                    toggleMobileMenu();
+                }
             }
 
             // تحميل قائمة الكلمات
@@ -2017,7 +2312,7 @@
                 });
             }
 
-            // عرض قائمة التطبيقات
+            // عرض قائمة التطبيقات في القائمة الجانبية
             function renderAppsMenu() {
                 appsMenu.innerHTML = '<div class="menu-section-title"><span>تطبيقاتي</span></div>';
                 
@@ -2085,6 +2380,7 @@
                     currentAppStartTime = new Date();
                 }
                 renderAppsMenu();
+                renderAppsShowcase();
             }
 
             // العودة إلى الصفحة الرئيسية
